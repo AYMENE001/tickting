@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>User CRUD</title>
+
+<style>
+body{
+    font-family: Arial;
+    margin:40px;
+}
+
+input,button{
+    padding:8px;
+    margin:5px;
+}
+
+table{
+    border-collapse: collapse;
+    width:100%;
+}
+
+table,th,td{
+    border:1px solid #ccc;
+}
+
+th,td{
+    padding:10px;
+    text-align:center;
+}
+
+button{
+    cursor:pointer;
+}
+</style>
+
+</head>
+
+<body>
+
+<h2>User Management (CRUD)</h2>
+
+<!-- ================= FORM ================= -->
+<form id="userForm">
+
+    <input type="hidden" id="userId">
+
+    <input type="text" id="username" placeholder="Username" required>
+
+    <input type="password" id="password" placeholder="Password">
+
+    <input type="text" id="guichet" placeholder="Guichet">
+
+    <button type="submit">Save User</button>
+
+</form>
+
+<hr>
+
+<!-- ================= TABLE ================= -->
+<table>
+
+<thead>
+<tr>
+    <th>ID</th>
+    <th>Username</th>
+    <th>Guichet</th>
+    <th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="userTable"></tbody>
+
+</table>
+
+
+<script>
+
+const API = "http://localhost:3000/api/users";
+
+
+// ================= LOAD USERS =================
+async function loadUsers(){
+
+    const res = await fetch(API);
+    const data = await res.json();
+
+    const table = document.getElementById("userTable");
+    table.innerHTML = "";
+
+    data.users.forEach(user => {
+
+        table.innerHTML += `
+        <tr>
+            <td>${user.id}</td>
+            <td>${user.username}</td>
+            <td>${user.guichet}</td>
+            <td>
+                <button onclick="editUser(${user.id})">Edit</button>
+                <button onclick="deleteUser(${user.id})">Delete</button>
+            </td>
+        </tr>`;
+    });
+}
+
+
+
+// ================= CREATE / UPDATE =================
+document.getElementById("userForm").addEventListener("submit", async(e)=>{
+
+    e.preventDefault();
+
+    const id = document.getElementById("userId").value;
+
+    const user = {
+        username: document.getElementById("username").value,
+        password: document.getElementById("password").value,
+        guichet: document.getElementById("guichet").value
+    };
+
+    // UPDATE
+    if(id){
+
+        await fetch(`${API}/${id}`,{
+            method:"PUT",
+            headers:{ "Content-Type":"application/json"},
+            body:JSON.stringify(user)
+        });
+
+    }else{
+
+        // CREATE
+        await fetch(`${API}/create`,{
+            method:"POST",
+            headers:{ "Content-Type":"application/json"},
+            body:JSON.stringify(user)
+        });
+    }
+
+    document.getElementById("userForm").reset();
+    document.getElementById("userId").value = "";
+
+    loadUsers();
+});
+
+
+
+// ================= EDIT =================
+async function editUser(id){
+
+    const res = await fetch(`${API}/${id}`);
+    const data = await res.json();
+
+    document.getElementById("userId").value = data.user.id;
+    document.getElementById("username").value = data.user.username;
+    document.getElementById("guichet").value = data.user.guichet;
+
+}
+
+
+
+// ================= DELETE =================
+async function deleteUser(id){
+
+    if(!confirm("Delete this user ?")) return;
+
+    await fetch(`${API}/${id}`,{
+        method:"DELETE"
+    });
+
+    loadUsers();
+}
+
+
+
+// ================= START =================
+loadUsers();
+
+</script>
+
+</body>
+</html>

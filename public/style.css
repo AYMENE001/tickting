@@ -1,0 +1,148 @@
+/* =======================
+   General Reset & Body
+========================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    text-align: center;
+    padding: 20px;
+}
+
+/* =======================
+   Buttons
+========================== */
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 25px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 20px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* =======================
+   Ticket Card
+========================== */
+.ticket {
+    border: 2px dashed #333;
+    border-radius: 10px;
+    background-color: white;
+    width: 300px;
+    margin: 30px auto;
+    padding: 20px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.ticket h1 {
+    font-size: 48px;
+    margin: 15px 0;
+    color: #007bff;
+}
+
+.ticket h2, .ticket h3 {
+    font-size: 18px;
+    margin: 5px 0;
+}
+
+.ticket p {
+    font-size: 14px;
+    margin: 5px 0;
+}
+
+/* =======================
+   Headers
+========================== */
+h1, h2, h3 {
+    font-family: 'Arial', sans-serif;
+}
+
+/* =======================
+   Service Buttons (future page)
+========================== */
+.service-btn {
+    display: inline-block;
+    margin: 10px;
+    padding: 15px 25px;
+    background-color: #28a745;
+    color: white;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.service-btn:hover {
+    background-color: #200fdc;
+}
+
+/* =======================
+   Print Styles
+========================== */
+@media print {
+    body {
+        background: white;
+        padding: 0;
+    }
+
+    button, .service-btn {
+        display: none;
+    }
+
+    .ticket {
+        box-shadow: none;
+        border: 1px solid black;
+        width: 100%;
+        margin: 0;
+    }
+}
+
+/* =======================
+   Optional Priority Badge
+========================== */
+.priority {
+    display: inline-block;
+    background-color: #dc3545;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+/* =======================
+   Ticket List Table (Admin Page)
+========================== */
+.table-tickets {
+    width: 80%;
+    margin: 20px auto;
+    border-collapse: collapse;
+}
+
+.table-tickets th, .table-tickets td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+}
+
+.table-tickets th {
+    background-color: #007bff;
+    color: white;
+}
+
+.table-tickets tr:nth-child(even) {
+    background-color: #f2f2f2;
+}

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Borne SEAAL</title>
+    <link rel="icon" href="img/logoSeaal.PNG" type="image/x-icon">
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #e6f2f7;
+    text-align: center;
+}
+.logo {
+    width: 120px;
+    margin-top: 20px;
+}
+.services {
+    margin-top: 20px;
+}
+.services button {
+    width: 220px;
+    padding: 15px;
+    margin: 10px;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    background: #004987;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.services button:hover {
+    background: #003366;
+}
+.priority {
+    background: #009633 !important;
+}
+.ticket {
+    border: 2px dashed black;
+    padding: 20px;
+    width: 260px;
+    margin: auto;
+    margin-top: 30px;
+    background: white;
+    display: none; /* hidden initially */
+}
+.ticket h1 {
+    font-size: 45px;
+    margin: 10px 0;
+}
+.ticket p {
+    margin: 5px 0;
+}
+@media print {
+    button {
+        display: none;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<img src="img/logoSeaal.PNG" class="logo">
+<h1>Borne File d'Attente</h1>
+
+<!-- SERVICE BUTTONS -->
+<div class="services">
+    <button onclick="generateTicket('Paiement')">💳 Paiement</button>
+    <button onclick="generateTicket('Réclamation')">📄 Réclamation</button>
+    <button onclick="generateTicket('Information')">ℹ️ Information</button>
+    <br>
+    <button class="priority" id="togglePriority">⭐ Prioritaire</button>
+</div>
+
+<!-- TICKET DISPLAY -->
+<div class="ticket" id="ticketDiv">
+    <h1 id="number">P-001</h1>
+    <p id="service">Service: </p>
+    <p id="priority">Priorité: </p>
+    <p id="date">Date: </p>
+</div>
+
+<script>
+let priorityMode = false;
+
+// Toggle priority mode
+document.getElementById('togglePriority').addEventListener('click', () => {
+    priorityMode = !priorityMode;
+    const btn = document.getElementById('togglePriority');
+    btn.innerText = priorityMode ? "⭐ Prioritaire (ON)" : "⭐ Prioritaire";
+    btn.style.backgroundColor = priorityMode ? "#cc0000" : "#009633";
+});
+
+// Make function global so buttons can access it
+window.generateTicket = function(service) {
+    // Show ticket UI
+    const ticketDiv = document.getElementById('ticketDiv');
+    ticketDiv.style.display = 'block';
+    
+    document.getElementById('service').innerText = "Service: " + service;
+    document.getElementById('priority').innerText = "Priorité: " + (priorityMode ? "Oui" : "Non");
+    document.getElementById('date').innerText = new Date().toLocaleString();
+
+    // Send data to backend to generate ticket number
+    fetch('/api/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            type_service: service,
+            prioritaire: priorityMode ? "Oui" : "Non"
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log("Ticket inserted:", data);
+        document.getElementById('number').innerText = data.ticket_number;
+        setTimeout(() => { window.print(); }, 200);
+    })
+    .catch(err => console.error("Error inserting ticket:", err));
+};
+</script>
+
+</body>
+</html>
