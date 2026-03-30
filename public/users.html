@@ -76,13 +76,17 @@ button{
 
 <script>
 
-const API = "http://localhost:3000/api/users";
+const API = "http://localhost:5000/api/users";
 
-
+const token = localStorage.getItem("token");
 // ================= LOAD USERS =================
 async function loadUsers(){
 
-    const res = await fetch(API);
+    const res = await fetch(API,{
+    headers:{
+        "Authorization":"Bearer "+token
+    }
+});
     const data = await res.json();
 
     const table = document.getElementById("userTable");
@@ -117,22 +121,21 @@ document.getElementById("userForm").addEventListener("submit", async(e)=>{
         password: document.getElementById("password").value,
         guichet: document.getElementById("guichet").value
     };
-
     // UPDATE
     if(id){
 
         await fetch(`${API}/${id}`,{
             method:"PUT",
-            headers:{ "Content-Type":"application/json"},
+            headers:{ "Content-Type":"application/json",  "Authorization":"Bearer "+token},
             body:JSON.stringify(user)
         });
 
     }else{
-
+console.log("hello world")
         // CREATE
         await fetch(`${API}/create`,{
             method:"POST",
-            headers:{ "Content-Type":"application/json"},
+            headers:{ "Content-Type":"application/json",  "Authorization":"Bearer "+token},
             body:JSON.stringify(user)
         });
     }
@@ -148,7 +151,7 @@ document.getElementById("userForm").addEventListener("submit", async(e)=>{
 // ================= EDIT =================
 async function editUser(id){
 
-    const res = await fetch(`${API}/${id}`);
+    const res = await fetch(`${API}/${id}`,{     headers:{  "Authorization":"Bearer "+token}});
     const data = await res.json();
 
     document.getElementById("userId").value = data.user.id;

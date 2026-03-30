@@ -3,246 +3,77 @@
 <head>
 <meta charset="UTF-8">
 <title>Gestion Tickets</title>
- <link rel="icon" href="img/logoSeaal.PNG" type="image/x-icon">
 
 <style>
-body {
-    font-family: Arial;
-    background: #f2f2f2;
-    display: flex;
-    gap: 20px;
-    padding: 20px;
+
+body{
+    margin:0;
+    font-family:Arial;
+    background:#f4f6f9;
 }
 
-/* LEFT PANEL */
-.sidebar {
-    width: 250px;
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
+/* NAVBAR */
+.navbar{
+    background:#1f5fa8;
+    color:white;
+    padding:15px;
+    display:flex;
+    gap:20px;
 }
 
-.box {
-    padding: 20px;
-    color: white;
-    margin-bottom: 15px;
-    border-radius: 10px;
-    text-align: center;
-    font-weight: bold;
+.navbar button{
+    background:none;
+    border:none;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
 }
 
-.blue { background: #1f5fa8; }
-.green { background: #198754; }
-.red { background: #dc3545; }
-
-/* MAIN */
-.main {
-    flex: 1;
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
+.navbar button:hover{
+    text-decoration:underline;
 }
 
-.header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
+/* CONTENT */
+#content{
+    padding:20px;
 }
 
-/* BUTTONS */
-button {
-    padding: 10px 20px;
-    margin-right: 10px;
-    border: none;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
+iframe{
+    width:100%;
+    height:90vh;
+    border:none;
 }
 
-button:disabled {
-    background: #999 !important;
-    cursor: not-allowed;
-}
-
-.btn-blue { background: #1f5fa8; }
-.btn-green { background: #198754; }
-.btn-red { background: #dc3545; }
-
-/* TABLE */
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th, td {
-    border: 1px solid #ccc;
-    padding: 10px;
-    text-align: center;
-}
-
-th {
-    background: #eee;
-}
-
-/* CURRENT TICKET HIGHLIGHT */
-.current-ticket {
-    background-color: #fff3cd;
-    border: 2px solid orange;
-}
 </style>
 </head>
 
 <body>
 
-<!-- LEFT -->
-<div class="sidebar">
-    <h3>Résumé des Tickets</h3>
-
-    <div class="box blue">En attente : <span id="waiting">0</span></div>
-    <div class="box green">Clôturés : <span id="done">0</span></div>
-    <div class="box red">Abandonnés : <span id="cancel">0</span></div>
+<div class="navbar">
+    <button onclick="loadPage('tickets.html')">📋 Liste Attente</button>
+    <button onclick="loadPage('users.html')">👤 Gestion Utilisateurs</button>
+    <button onclick="loadPage('settings.html')">⚙ Paramétrage</button>
+    <button onclick="logout()">🚪 Logout</button>
 </div>
 
-<!-- RIGHT -->
-<div class="main">
-
-    <div class="header">
-        <div>👤 Agent</div>
-        <div id="time"></div>
-    </div>
-
-    <div>
-        <button id="btnNext" class="btn-blue" onclick="nextTicket()">Suivant</button>
-        <button id="btnDone" class="btn-green" onclick="doneTicket()" disabled>Traité</button>
-        <button id="btnCancel" class="btn-red" onclick="cancelTicket()" disabled>Abandonné</button>
-    </div>
-
-    <h3>Tickets en attente</h3>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Numéro</th>
-                <th>Service</th>
-                <th>Priorité</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody id="ticketBody"></tbody>
-    </table>
-
+<div id="content">
+    <iframe id="frame" src="tickets.html"></iframe>
 </div>
 
 <script>
-let currentTicket = null;
+// CHECK TOKEN
+const token = localStorage.getItem("token");
 
-const btnDone = document.getElementById('btnDone');
-const btnCancel = document.getElementById('btnCancel');
-
-// CLOCK
-setInterval(() => {
-    document.getElementById("time").innerText = new Date().toLocaleString();
-}, 1000);
-
-// LOAD TICKETS (ONLY "EN ATTENTE")
-async function loadTickets() {
-    try {
-        const res = await fetch('/api/tickets');
-        const tickets = await res.json();
-
-        const tbody = document.getElementById('ticketBody');
-        tbody.innerHTML = '';
-
-        let waiting = 0, done = 0, cancel = 0;
-
-        tickets.forEach(t => {
-
-            if (t.statut === 'en attente') {
-                waiting++;
-
-                const row = document.createElement('tr');
-
-                // highlight current ticket
-                if (currentTicket && currentTicket.id === t.id) {
-                    row.classList.add('current-ticket');
-                }
-
-                row.innerHTML = `
-                    <td>${t.ticket_number}</td>
-                    <td>${t.type_service}</td>
-                    <td>${t.prioritaire}</td>
-                    <td>${new Date(t.date_creation).toLocaleString()}</td>
-                `;
-                tbody.appendChild(row);
-            }
-
-            if (t.statut === 'clos') done++;
-            if (t.statut === 'abandonné') cancel++;
-        });
-
-        document.getElementById('waiting').innerText = waiting;
-        document.getElementById('done').innerText = done;
-        document.getElementById('cancel').innerText = cancel;
-
-    } catch (err) {
-        console.error("Erreur:", err);
-    }
+if(!token){
+    window.location.href="login.html";
 }
-
-// NEXT → CALLED
-async function nextTicket() {
-    try {
-        const res = await fetch('/api/tickets/next', { method: 'POST' });
-
-        if (res.status === 404) {
-            alert("Aucun ticket en attente !");
-            return;
-        }
-
-        currentTicket = await res.json();
-
-        // enable buttons
-        btnDone.disabled = false;
-        btnCancel.disabled = false;
-
-        loadTickets();
-
-    } catch (err) {
-        console.error(err);
-    }
+function loadPage(page){
+    document.getElementById("frame").src = page;
 }
-
-// DONE → CLOSE
-async function doneTicket() {
-    if (!currentTicket) return;
-
-    await fetch(`/api/tickets/${currentTicket.id}/close`, { method: 'POST' });
-
-    resetState();
+function logout(){
+    localStorage.removeItem("token");
+    window.location.href="login.html";
 }
-
-// CANCEL
-async function cancelTicket() {
-    if (!currentTicket) return;
-
-    await fetch(`/api/tickets/${currentTicket.id}/cancel`, { method: 'POST' });
-
-    resetState();
-}
-
-// RESET
-function resetState() {
-    currentTicket = null;
-
-    btnDone.disabled = true;
-    btnCancel.disabled = true;
-
-    loadTickets();
-}
-
-// AUTO REFRESH
-setInterval(loadTickets, 5000);
-window.onload = loadTickets;
 </script>
 
 </body>

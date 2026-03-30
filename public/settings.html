@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Paramétrage</title>
+
+<style>
+body{font-family:Arial}
+
+input,button{
+    padding:8px;
+    margin:5px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    border:1px solid #ccc;
+    padding:10px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h2>Paramétrage Tables</h2>
+
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Nom Table</th>
+<th>Valeur</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="settingsTable"></tbody>
+</table>
+
+<script>
+
+const API = "/api/settings";
+
+const token = localStorage.getItem("token");
+// LOAD SETTINGS
+async function loadSettings(){
+
+    const res = await fetch(API);
+    const data = await res.json();
+
+    const table = document.getElementById("settingsTable");
+    table.innerHTML="";
+
+    data.forEach(s=>{
+
+        table.innerHTML+=`
+        <tr>
+            <td>${s.id}</td>
+            <td>${s.name}</td>
+            <td>
+                <input value="${s.value}" id="val_${s.id}">
+            </td>
+            <td>
+                <button onclick="updateSetting(${s.id})">
+                    Modifier
+                </button>
+            </td>
+        </tr>`;
+    });
+}
+
+
+// UPDATE SETTING
+async function updateSetting(id){
+
+    const value=document.getElementById(`val_${id}`).value;
+
+    await fetch(`/api/settings/${id}`,{
+        method:"PUT",
+       
+        headers:{'Content-Type':'application/json',"Authorization":"Bearer "+token},
+        body:JSON.stringify({value})
+    });
+
+    alert("Paramètre modifié");
+}
+
+loadSettings();
+
+</script>
+
+</body>
+</html>

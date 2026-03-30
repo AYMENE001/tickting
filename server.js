@@ -17,7 +17,7 @@ app.use(express.json());
 app.use('/api/tickets',ticketRoute);
 app.use('/api/settings',settingsRoute);
 app.use('/api/login',loginRoutes);
-app.use('/api/user',userRoutes);
+app.use('/api/users',userRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
