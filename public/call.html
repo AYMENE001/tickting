@@ -70,6 +70,8 @@ console.log('agence',agence)
         div.innerHTML=`
             <h2>${t.ticket_number} ${t.prioritaire==='Oui'?'⭐':''}</h2>
             <p>${t.type_service}</p>
+            <h3>guichet : ${t.guichet} </h3>
+            
         `;
 
         list.appendChild(div);

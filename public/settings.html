@@ -5,27 +5,126 @@
 <title>Paramétrage</title>
 
 <style>
-body{font-family:Arial}
 
-input,button{
-    padding:8px;
-    margin:5px;
+*{
+    box-sizing:border-box;
 }
 
+body{
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background:#f4f6f9;
+    margin:0;
+    padding:40px;
+}
+
+/* ===== CONTAINER ===== */
+.container{
+    max-width:900px;
+    margin:auto;
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.1);
+}
+
+h2{
+    text-align:center;
+    margin-bottom:25px;
+    color:#333;
+}
+
+/* ===== TABLE ===== */
 table{
     width:100%;
     border-collapse:collapse;
+    overflow:hidden;
+    border-radius:8px;
+}
+
+thead{
+    background:#4CAF50;
+    color:white;
 }
 
 th,td{
-    border:1px solid #ccc;
-    padding:10px;
+    padding:12px;
+    text-align:center;
 }
+
+tbody tr{
+    border-bottom:1px solid #eee;
+    transition:0.2s;
+}
+
+tbody tr:hover{
+    background:#f1f1f1;
+}
+
+/* ===== INPUT ===== */
+input{
+    padding:8px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    outline:none;
+    transition:0.3s;
+}
+
+input:focus{
+    border-color:#4CAF50;
+    box-shadow:0 0 5px rgba(76,175,80,0.3);
+}
+
+/* ===== BUTTON ===== */
+button{
+    padding:8px 14px;
+    border:none;
+    border-radius:6px;
+    background:#2196F3;
+    color:white;
+    cursor:pointer;
+    font-weight:bold;
+    transition:0.3s;
+}
+
+button:hover{
+    background:#1976d2;
+}
+
+/* SUCCESS MESSAGE */
+.toast{
+    position:fixed;
+    top:20px;
+    right:20px;
+    background:#4CAF50;
+    color:white;
+    padding:12px 18px;
+    border-radius:6px;
+    opacity:0;
+    transition:0.4s;
+}
+
+.toast.show{
+    opacity:1;
+}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:600px){
+    table{
+        font-size:14px;
+    }
+
+    input{
+        width:100%;
+    }
+}
+
 </style>
 
 </head>
 
 <body>
+
+<div class="container">
 
 <h2>Paramétrage Tables</h2>
 
@@ -42,18 +141,41 @@ th,td{
 <tbody id="settingsTable"></tbody>
 </table>
 
+</div>
+
+<div id="toast" class="toast">Paramètre modifié ✔</div>
+
 <script>
 
 const API = "/api/settings";
-
 const token = localStorage.getItem("token");
-// LOAD SETTINGS
+
+
+// ===== TOAST MESSAGE =====
+function showToast(message){
+
+    const toast=document.getElementById("toast");
+    toast.textContent=message;
+    toast.classList.add("show");
+
+    setTimeout(()=>{
+        toast.classList.remove("show");
+    },2000);
+}
+
+
+// ===== LOAD SETTINGS =====
 async function loadSettings(){
 
-    const res = await fetch(API);
+    const res = await fetch(API,{
+        headers:{
+            "Authorization":"Bearer "+token
+        }
+    });
+
     const data = await res.json();
 
-    const table = document.getElementById("settingsTable");
+    const table=document.getElementById("settingsTable");
     table.innerHTML="";
 
     data.forEach(s=>{
@@ -75,19 +197,21 @@ async function loadSettings(){
 }
 
 
-// UPDATE SETTING
+// ===== UPDATE SETTING =====
 async function updateSetting(id){
 
     const value=document.getElementById(`val_${id}`).value;
 
     await fetch(`/api/settings/${id}`,{
         method:"PUT",
-       
-        headers:{'Content-Type':'application/json',"Authorization":"Bearer "+token},
+        headers:{
+            'Content-Type':'application/json',
+            "Authorization":"Bearer "+token
+        },
         body:JSON.stringify({value})
     });
 
-    alert("Paramètre modifié");
+    showToast("Paramètre modifié ✔");
 }
 
 loadSettings();

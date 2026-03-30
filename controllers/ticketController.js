@@ -1,5 +1,5 @@
 const db = require('../config/db');
-
+const ExcelJS = require('exceljs');
 // 1️⃣ Create a ticket
 exports.createTicket = (req, res) => {
     const { type_service, prioritaire } = req.body;
@@ -57,6 +57,8 @@ exports.getTicketsCalled = (req, res) => {
 
 // 4️⃣ Call the next ticket (waiting → appelé)
 exports.callNextTicket = (req, res) => {
+    const guichet = req.user.guichet
+    console.log('guichet',guichet)
     // Get the first waiting ticket ordered by creation date
     db.query("SELECT * FROM tickets WHERE statut='en attente' ORDER BY date_creation ASC LIMIT 1", (err, results) => {
         if (err) return res.status(500).json(err);
@@ -65,8 +67,8 @@ exports.callNextTicket = (req, res) => {
         const ticket = results[0];
 
         db.query(
-            "UPDATE tickets SET statut='appelé' WHERE id=?",
-            [ticket.id],
+            "UPDATE tickets SET statut='appelé',guichet=? WHERE id=?",
+            [guichet,ticket.id],
             (err2) => {
                 if (err2) return res.status(500).json(err2);
                 ticket.statut = 'appelé';
@@ -102,4 +104,59 @@ exports.cancelTicket = (req, res) => {
             res.json(results[0]);
         });
     });
+};
+
+
+
+exports.exportRapport = async (req, res) => {
+
+    db.query("SELECT * FROM tickets ORDER BY id DESC", async (err, results) => {
+
+        if (err) return res.status(500).json(err);
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet("Rapport Tickets");
+
+        // Columns
+        worksheet.columns = [
+            { header: "ID", key: "id", width: 10 },
+            { header: "Numéro", key: "ticket_number", width: 15 },
+            { header: "Service", key: "type_service", width: 20 },
+            { header: "Prioritaire", key: "prioritaire", width: 15 },
+            { header: "Statut", key: "statut", width: 15 },
+            { header: "Guichet", key: "guichet", width: 15 },
+            { header: "Date création", key: "date_creation", width: 25 }
+        ];
+
+        // Add rows
+        results.forEach(ticket => {
+            worksheet.addRow(ticket);
+        });
+
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+
+        res.setHeader(
+            "Content-Disposition",
+            "attachment; filename=rapport_tickets.xlsx"
+        );
+
+        await workbook.xlsx.write(res);
+        res.end();
+    });
+};
+
+exports.resetTickets = (req, res) => {
+
+    db.query("DELETE FROM tickets", (err) => {
+        if (err) return res.status(500).json(err);
+
+        // reset auto increment (optional but recommended)
+        db.query("ALTER TABLE tickets AUTO_INCREMENT = 1");
+
+        res.json({ message: "Tous les tickets ont été supprimés" });
+    });
+
 };

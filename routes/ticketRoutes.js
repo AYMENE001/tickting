@@ -10,4 +10,8 @@ router.post('/next',auth, ticketController.callNextTicket);    // Call next tick
 router.post('/:id/close', auth,ticketController.closeTicket);  // Close ticket
 router.post('/:id/cancel',auth, ticketController.cancelTicket);// Cancel ticket
 
+router.get('/export',auth, ticketController.exportRapport);
+
+router.delete('/reset',auth, ticketController.resetTickets);
+
 module.exports = router;

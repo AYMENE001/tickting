@@ -56,6 +56,22 @@ body {
         display: none;
     }
 }
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    #ticketDiv, #ticketDiv * {
+        visibility: visible;
+    }
+
+    #ticketDiv {
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+}
 </style>
 </head>
 
@@ -66,6 +82,10 @@ body {
 
 <!-- SERVICE BUTTONS -->
 <div class="services">
+   
+
+    
+    <div class="services">
     <button onclick="generateTicket('Paiement')">💳 Paiement</button>
     <button onclick="generateTicket('Réclamation')">📄 Réclamation</button>
     <button onclick="generateTicket('Information')">ℹ️ Information</button>
@@ -73,12 +93,10 @@ body {
     <button class="priority" id="togglePriority">⭐ Prioritaire</button>
 </div>
 
+
 <!-- TICKET DISPLAY -->
-<div class="ticket" id="ticketDiv">
-    <h1 id="number">P-001</h1>
-    <p id="service">Service: </p>
-    <p id="priority">Priorité: </p>
-    <p id="date">Date: </p>
+<div id="ticketDiv" style="display:none;">
+    <canvas id="ticketCanvas" width="400" height="600"></canvas>
 </div>
 
 <script>
@@ -92,32 +110,57 @@ document.getElementById('togglePriority').addEventListener('click', () => {
     btn.style.backgroundColor = priorityMode ? "#cc0000" : "#009633";
 });
 
-// Make function global so buttons can access it
 window.generateTicket = function(service) {
-    // Show ticket UI
+
     const ticketDiv = document.getElementById('ticketDiv');
     ticketDiv.style.display = 'block';
-    
-    document.getElementById('service').innerText = "Service: " + service;
-    document.getElementById('priority').innerText = "Priorité: " + (priorityMode ? "Oui" : "Non");
-    document.getElementById('date').innerText = new Date().toLocaleString();
 
-    // Send data to backend to generate ticket number
-    fetch('/api/tickets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            type_service: service,
-            prioritaire: priorityMode ? "Oui" : "Non"
+    const canvas = document.getElementById('ticketCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const img = new Image();
+
+    img.onload = function () {
+
+        // AFTER image ready → call backend
+        fetch('/api/tickets', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type_service: service,
+                prioritaire: priorityMode ? "Oui" : "Non"
+            })
         })
-    })
-    .then(res => res.json())
-    .then(data => {
-        console.log("Ticket inserted:", data);
-        document.getElementById('number').innerText = data.ticket_number;
-        setTimeout(() => { window.print(); }, 200);
-    })
-    .catch(err => console.error("Error inserting ticket:", err));
+        .then(res => res.json())
+        .then(data => {
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw background
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "black";
+            ctx.font = "20px Arial";
+
+            ctx.fillText("Service: " + service, 30, 120);
+            ctx.fillText("Priorité: " + (priorityMode ? "Oui" : "Non"), 30, 160);
+            ctx.fillText("Date: " + new Date().toLocaleString(), 30, 200);
+            ctx.fillText("Ticket N°: " + data.ticket_number, 30, 240);
+
+            console.log("Ticket inserted:", data);
+
+            // ✅ FORCE PRINT AFTER RENDER
+            setTimeout(() => {
+                window.focus();
+                window.print();
+            }, 500);
+        })
+        .catch(err => console.error("Error inserting ticket:", err));
+    };
+
+    // load image LAST
+    img.src = "img/apercu.png";
 };
 </script>
 

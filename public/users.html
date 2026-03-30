@@ -5,38 +5,137 @@
 <title>User CRUD</title>
 
 <style>
+
+*{
+    box-sizing:border-box;
+}
+
 body{
-    font-family: Arial;
-    margin:40px;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background:#f4f6f9;
+    margin:0;
+    padding:40px;
 }
 
-input,button{
-    padding:8px;
-    margin:5px;
+/* ===== CONTAINER ===== */
+.container{
+    max-width:900px;
+    margin:auto;
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.1);
 }
 
-table{
-    border-collapse: collapse;
-    width:100%;
+h2{
+    text-align:center;
+    margin-bottom:25px;
+    color:#333;
 }
 
-table,th,td{
+/* ===== FORM ===== */
+form{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    justify-content:center;
+}
+
+input{
+    padding:10px;
     border:1px solid #ccc;
+    border-radius:6px;
+    outline:none;
+    transition:0.3s;
+}
+
+input:focus{
+    border-color:#4CAF50;
+    box-shadow:0 0 5px rgba(76,175,80,0.3);
+}
+
+/* ===== BUTTONS ===== */
+button{
+    padding:10px 15px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
+    transition:0.3s;
+}
+
+button[type="submit"]{
+    background:#4CAF50;
+    color:white;
+}
+
+button[type="submit"]:hover{
+    background:#45a049;
+}
+
+.edit-btn{
+    background:#2196F3;
+    color:white;
+}
+
+.edit-btn:hover{
+    background:#1976d2;
+}
+
+.delete-btn{
+    background:#f44336;
+    color:white;
+}
+
+.delete-btn:hover{
+    background:#d32f2f;
+}
+
+/* ===== TABLE ===== */
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:25px;
+    overflow:hidden;
+    border-radius:8px;
+}
+
+thead{
+    background:#4CAF50;
+    color:white;
 }
 
 th,td{
-    padding:10px;
+    padding:12px;
     text-align:center;
 }
 
-button{
-    cursor:pointer;
+tbody tr{
+    border-bottom:1px solid #eee;
+    transition:0.2s;
 }
-</style>
 
+tbody tr:hover{
+    background:#f1f1f1;
+}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:600px){
+    form{
+        flex-direction:column;
+    }
+
+    input,button{
+        width:100%;
+    }
+}
+
+</style>
 </head>
 
 <body>
+
+<div class="container">
 
 <h2>User Management (CRUD)</h2>
 
@@ -55,8 +154,6 @@ button{
 
 </form>
 
-<hr>
-
 <!-- ================= TABLE ================= -->
 <table>
 
@@ -73,20 +170,23 @@ button{
 
 </table>
 
+</div>
 
 <script>
 
 const API = "http://localhost:5000/api/users";
-
 const token = localStorage.getItem("token");
+
+
 // ================= LOAD USERS =================
 async function loadUsers(){
 
     const res = await fetch(API,{
-    headers:{
-        "Authorization":"Bearer "+token
-    }
-});
+        headers:{
+            "Authorization":"Bearer "+token
+        }
+    });
+
     const data = await res.json();
 
     const table = document.getElementById("userTable");
@@ -100,13 +200,12 @@ async function loadUsers(){
             <td>${user.username}</td>
             <td>${user.guichet}</td>
             <td>
-                <button onclick="editUser(${user.id})">Edit</button>
-                <button onclick="deleteUser(${user.id})">Delete</button>
+                <button class="edit-btn" onclick="editUser(${user.id})">Edit</button>
+                <button class="delete-btn" onclick="deleteUser(${user.id})">Delete</button>
             </td>
         </tr>`;
     });
 }
-
 
 
 // ================= CREATE / UPDATE =================
@@ -121,21 +220,26 @@ document.getElementById("userForm").addEventListener("submit", async(e)=>{
         password: document.getElementById("password").value,
         guichet: document.getElementById("guichet").value
     };
-    // UPDATE
+
     if(id){
 
         await fetch(`${API}/${id}`,{
             method:"PUT",
-            headers:{ "Content-Type":"application/json",  "Authorization":"Bearer "+token},
+            headers:{
+                "Content-Type":"application/json",
+                "Authorization":"Bearer "+token
+            },
             body:JSON.stringify(user)
         });
 
     }else{
-console.log("hello world")
-        // CREATE
+
         await fetch(`${API}/create`,{
             method:"POST",
-            headers:{ "Content-Type":"application/json",  "Authorization":"Bearer "+token},
+            headers:{
+                "Content-Type":"application/json",
+                "Authorization":"Bearer "+token
+            },
             body:JSON.stringify(user)
         });
     }
@@ -147,19 +251,21 @@ console.log("hello world")
 });
 
 
-
 // ================= EDIT =================
 async function editUser(id){
 
-    const res = await fetch(`${API}/${id}`,{     headers:{  "Authorization":"Bearer "+token}});
+    const res = await fetch(`${API}/${id}`,{
+        headers:{
+            "Authorization":"Bearer "+token
+        }
+    });
+
     const data = await res.json();
 
     document.getElementById("userId").value = data.user.id;
     document.getElementById("username").value = data.user.username;
     document.getElementById("guichet").value = data.user.guichet;
-
 }
-
 
 
 // ================= DELETE =================
@@ -168,12 +274,14 @@ async function deleteUser(id){
     if(!confirm("Delete this user ?")) return;
 
     await fetch(`${API}/${id}`,{
-        method:"DELETE"
+        method:"DELETE",
+        headers:{
+            "Authorization":"Bearer "+token
+        }
     });
 
     loadUsers();
 }
-
 
 
 // ================= START =================
